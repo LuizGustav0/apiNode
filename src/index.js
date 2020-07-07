@@ -8,7 +8,12 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false}));
 
-require('./controllers/authController')(app);
+
+
+//Todos controles vão ser importados automaticamente
+require('./app/controllers/index')(app);
+
+
 
 
 app.listen(3000);
