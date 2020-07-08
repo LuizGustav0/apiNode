@@ -11,13 +11,39 @@ router.use(authMiddleware);
 
 //Select all
 router.get('/', async (req, res) => {
+    /*  
+        //Sem paginação
     try {
-        const projects = await Project.find().populate(['user', 'tasks']);
+          const projects = await Project.find().populate(['user', 'tasks']);
+  
+          return res.send({ projects });
+      } catch (error) {
+          return res.status(400).send({ error: "Error loading projects" });
+      } */
 
-        return res.send({ projects });
-    } catch (error) {
-        return res.status(400).send({ error: "Error loading projects" });
+    // destructure page and limit and set default values
+    const { page = 1, limit = 10 } = req.query;
+
+    try {
+
+        const posts = await Project.find()
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .exec();
+
+
+        const count = await Project.countDocuments();
+
+
+        res.json({
+            posts,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page
+        });
+    } catch (err) {
+        console.error(err);
     }
+
 
 });
 
@@ -39,10 +65,10 @@ router.post('/', async (req, res) => {
         const { title, description, tasks } = req.body;
 
 
-        const project = await Project.create({title, description, user: req.userId});
+        const project = await Project.create({ title, description, user: req.userId });
 
-       await Promise.all( tasks.map(async task => {
-            const projectTask = new Task({...task, project: project._id});
+        await Promise.all(tasks.map(async task => {
+            const projectTask = new Task({ ...task, project: project._id });
 
             await projectTask.save();
             project.tasks.push(projectTask);
@@ -66,10 +92,10 @@ router.put('/:projectId', async (req, res) => {
 
 
         const project = await Project.findByIdAndUpdate(req.params.projectId,
-             {
-                 title,
-                 description,
-            }, {new:true});
+            {
+                title,
+                description,
+            }, { new: true });
 
         //Deletar tasks antigas
         project.tasks = [];
@@ -77,8 +103,8 @@ router.put('/:projectId', async (req, res) => {
 
 
 
-       await Promise.all( tasks.map(async task => {
-            const projectTask = new Task({...task, project: project._id});
+        await Promise.all(tasks.map(async task => {
+            const projectTask = new Task({ ...task, project: project._id });
 
             await projectTask.save();
             project.tasks.push(projectTask);
