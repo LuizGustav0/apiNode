@@ -89,13 +89,13 @@ router.post('/forgot_password', async (req, res) => {
         });
 
         //console.log(token, now);
-
+        const link = "http://localhost:3000/reset-password?" + "e=" + email + "&t=" + token;
 
         mailer.sendMail({
             to: email,
             from: 'contato-luiz-gustavo@outlook.com',
             template: 'auth/forgot_password',
-            context: { token },
+            context: { token, email, link },
         }, (err) => {
             if (err)
                 return res.status(400).send({ error: 'Cannot send forgot password email' })
@@ -111,7 +111,6 @@ router.post('/forgot_password', async (req, res) => {
 });
 
 //Resetar senha/enviar nova senha
-
 router.post('/reset_password', async (req, res) => {
     const { email, token, password } = req.body;
 
